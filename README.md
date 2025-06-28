@@ -8,3 +8,5 @@ AndroidManifest.xml
     <application>
     </application>
 ```
+### Image
+<img src="https://github.com/pollyolly/iVolumeManager/blob/main/ivolume_manager.png" width=250 />
