@@ -64,6 +64,7 @@ function App() {
       console.warn('Do Not Disturb access is required to change ringer mode.');
       await VolumeManager.requestDndAccess();
     } else {
+      //Set Do Not Disturb
         await setMode(RINGER_MODE.silent);
     }
     setVolumeZero()
@@ -74,6 +75,7 @@ function App() {
       console.warn('Do Not Disturb access is required to change ringer mode.');
       await VolumeManager.requestDndAccess();
     } else {
+      //Set System Volume to Zero to Silent
         setVolumeZero()
         await setMode(3);
       }
@@ -85,6 +87,8 @@ function App() {
       console.warn('Do Not Disturb access is required to change ringer mode.');
       await VolumeManager.requestDndAccess();
     } else {
+      //Disable Do Not Disturb
+      //Set Normal Mode
       await setMode(RINGER_MODE.normal);
     }
     // console.log('Silent:',RINGER_MODE.silent)//0
