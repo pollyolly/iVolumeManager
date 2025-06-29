@@ -7,11 +7,11 @@ import { VolumeManager,
 import Slider from '@react-native-community/slider';
 import { useState, useEffect, useRef } from "react";
 
-  const modeText = {
-    [RINGER_MODE.silent]: 'Silent',
-    [RINGER_MODE.normal]: 'Normal',
-    [RINGER_MODE.vibrate]: 'Vibrate'
-  }
+const modeText = {
+  [RINGER_MODE.silent]: 'DoNotDisturb', //0 //DoNotDisturb
+  [RINGER_MODE.vibrate]: 'Vibrate', //1
+  [RINGER_MODE.normal]: 'Normal', //2
+}
 
 function App() {
   const [notificationVolume, setNotificationVolume] = useState(0)
@@ -19,11 +19,6 @@ function App() {
   const [musicVolume, setMusicVolume] = useState(0)
   const [ringVolume, setRingVolume] = useState(0)
   const [alarmVolume, setAlarmVolume] = useState(0)
-  // const modeText = useRef({
-  //   [RINGER_MODE.silent]: 'Silent',
-  //   [RINGER_MODE.normal]: 'Normal',
-  //   [RINGER_MODE.vibrate]: 'Vibrate'
-  // })
 
   const { mode, error, setMode } = useRingerMode();
 
@@ -63,7 +58,7 @@ function App() {
     });
   }
 
-  const applySilent = async () => {
+  const applyDonotDisturb = async () => {
     const hasDndAccess = await VolumeManager.checkDndAccess();
     if (!hasDndAccess) {
       console.warn('Do Not Disturb access is required to change ringer mode.');
@@ -71,6 +66,17 @@ function App() {
     } else {
         await setMode(RINGER_MODE.silent);
     }
+    setVolumeZero()
+  }
+  const applySilent = async () => {
+    const hasDndAccess = await VolumeManager.checkDndAccess();
+    if (!hasDndAccess) {
+      console.warn('Do Not Disturb access is required to change ringer mode.');
+      await VolumeManager.requestDndAccess();
+    } else {
+        setVolumeZero()
+        await setMode(3);
+      }
   }
   const applyNormal = async () => {
     //Check "Do Not Disturb" Permissions
@@ -79,7 +85,7 @@ function App() {
       console.warn('Do Not Disturb access is required to change ringer mode.');
       await VolumeManager.requestDndAccess();
     } else {
-        await setMode(RINGER_MODE.normal);
+      await setMode(RINGER_MODE.normal);
     }
     // console.log('Silent:',RINGER_MODE.silent)//0
     // console.log('Vibrate:',RINGER_MODE.vibrate)//1
@@ -128,23 +134,52 @@ const getCurrentVolume = async () =>{
 
 const checkIfSilent = async ()=>{
   const result = await VolumeManager.isAndroidDeviceSilent();
-                    Alert.alert(
-                      'Info',
-                      result
-                        ? 'Device is silent. This is a silent mode or muted volume or vibrate mode or do not disturb mode.'
-                        : 'Device is not silent. This is a normal mode. Check ringer mode to get more details'
-                    );
+    Alert.alert(
+      'Info',
+      result
+      ? 'Device is silent. This is a silent mode or muted volume or vibrate mode or do not disturb mode.'
+      : 'Device is not silent. This is a normal mode.'
+    );
 }
+
+  const checkSilentNormalVibrate = (setmode: string) => {
+    switch(setmode){
+      case 'Normal':
+        return(
+          <TouchableOpacity
+          onPress={applyVibrate}
+          style={styles.button}>
+          <Text style={styles.buttonText}>Normal</Text>
+        </TouchableOpacity> 
+        )
+      case 'Vibrate':
+        return(
+          <TouchableOpacity
+            onPress={applySilent}
+            style={styles.button}>
+            <Text style={styles.buttonText}>Vibrate</Text>
+          </TouchableOpacity>
+        )
+      default:
+        return (
+          <TouchableOpacity
+            onPress={applyNormal}
+            style={styles.button}>
+            <Text style={styles.buttonText}>Silent</Text>
+          </TouchableOpacity>
+        )
+    }
+  }
 
   useEffect(() => {
     getCurrentVolume();
-    const ringerListener = VolumeManager.addRingerListener((result) => {
-      console.log('Ringer listener changed', result);
-      // setRingerStatus(result);
-    });
-    return () => {
-      VolumeManager.removeRingerListener(ringerListener);
-    };
+    // const ringerListener = VolumeManager.addRingerListener((result) => {
+    //   console.log('Ringer listener changed', result); //{ mode: 'NORMAL', status: false }
+    //   // setRingerStatus(result);
+    // });
+    // return () => {
+    //   VolumeManager.removeRingerListener(ringerListener);
+    // };
   }, []);
 
   return (
@@ -174,7 +209,6 @@ const checkIfSilent = async ()=>{
       style={styles.slider}
       minimumValue={0}
       maximumValue={1}
-      // step={0.1} //Increment by 0.1
       minimumTrackTintColor="#FFFFFF"
       maximumTrackTintColor="#000000"
       value={musicVolume}
@@ -188,7 +222,6 @@ const checkIfSilent = async ()=>{
       style={styles.slider}
       minimumValue={0}
       maximumValue={1}
-      // step={0.1} //Increment by 0.1
       minimumTrackTintColor="#FFFFFF"
       maximumTrackTintColor="#000000"
       value={ringVolume}
@@ -202,7 +235,6 @@ const checkIfSilent = async ()=>{
       style={styles.slider}
       minimumValue={0}
       maximumValue={1}
-      // step={0.1} //Increment by 0.1
       minimumTrackTintColor="#FFFFFF"
       maximumTrackTintColor="#000000"
       value={alarmVolume}
@@ -216,43 +248,17 @@ const checkIfSilent = async ()=>{
       style={styles.slider}
       minimumValue={0}
       maximumValue={1}
-      // step={0.1} //Increment by 0.1
       minimumTrackTintColor="#FFFFFF"
       maximumTrackTintColor="#000000"
       value={notificationVolume}
       onValueChange={setNotificationVolume}
       onSlidingComplete={applyNotificationVolume}
     />
-    <TouchableOpacity
-        onPress={setVolumeZero}
-        style={styles.button}>
-        <Text style={styles.buttonText}>Set Zero Volume</Text>
-      </TouchableOpacity>
-      { modeText[mode] == 'Normal' &&
-     <TouchableOpacity
-        onPress={applyVibrate}
-        style={styles.button}>
-        <Text style={styles.buttonText}>Normal</Text>
-      </TouchableOpacity> 
-      }
-      { modeText[mode] == 'Silent' &&
+      { checkSilentNormalVibrate(modeText[mode]) }
       <TouchableOpacity
-        onPress={applyNormal}
+        onPress={applyDonotDisturb}
         style={styles.button}>
-        <Text style={styles.buttonText}>Silent</Text>
-      </TouchableOpacity>
-      }
-      { modeText[mode] == 'Vibrate' && 
-      <TouchableOpacity
-        onPress={applySilent}
-        style={styles.button}>
-        <Text style={styles.buttonText}>Vibrate</Text>
-      </TouchableOpacity>
-      }
-      <TouchableOpacity
-        onPress={checkIfSilent}
-        style={styles.button}>
-        <Text style={styles.buttonText}>Check if Silent</Text>
+        <Text style={styles.buttonText}>Do Not Disturb</Text>
       </TouchableOpacity>
     </View>
   );
