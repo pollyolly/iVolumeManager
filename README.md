@@ -1,7 +1,10 @@
 ## iVolumeManager
 ### NPM Modules
 ```
+react
+react-native
 react-native-volume-manager
+@react-native-community/slider
 ```
 ### Permissions
 AndroidManifest.xml
