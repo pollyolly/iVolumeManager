@@ -207,7 +207,7 @@ const checkIfSilent = async ()=>{
       // inverted={true}
     />
      <Text style={styles.textTitle}>
-        Music Volume
+        Media Volume
       </Text>
      <Slider
       style={styles.slider}
